@@ -26,6 +26,7 @@ class StatsProvider extends ChangeNotifier {
     required String image,
   }) {
     countrylist.add({
+      
       'image': image,
       'name': name,
       'totalCases': totalCases,

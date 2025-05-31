@@ -17,15 +17,15 @@ class DetailScreen extends StatefulWidget {
 class _DetailScreenState extends State<DetailScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Consumer<StatsProvider>(builder: (context, StatsProvider value, child){
+          return Scaffold(
       appBar: AppBar(
-        title: Text('xyz'),
+        title: Text('Details of ${value.countrylist.last['name']}'),
         centerTitle: true,
 
       ),
       body: SafeArea(
-        child: Consumer<StatsProvider>(builder: (context, StatsProvider value, child) {
-        return   Column(
+        child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -59,13 +59,14 @@ class _DetailScreenState extends State<DetailScreen> {
               )
           
             ],
-          );
-        },
+          ),
+        
       
-        ),
+        
       ),
     );
-  }
+    });
+    }
 }
 
 
