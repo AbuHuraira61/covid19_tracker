@@ -1,5 +1,4 @@
 import 'package:covid19_tracker/Provider/stats_provider.dart';
-import 'package:covid19_tracker/Services/world_stats_service.dart';
 import 'package:covid19_tracker/views/countries_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
