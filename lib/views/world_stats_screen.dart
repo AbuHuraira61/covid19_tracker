@@ -16,6 +16,16 @@ class WorldStatsScreen extends StatefulWidget {
 class _WorldStatsScreenState extends State<WorldStatsScreen>
     with TickerProviderStateMixin {
 
+         @override
+  void initState() {
+    super.initState();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<StatsProvider>(context, listen: false);
+      provider.fetchWorldStatsList();
+    });
+  }
+
    
 
   late final AnimationController _controller = AnimationController(
@@ -35,11 +45,9 @@ class _WorldStatsScreenState extends State<WorldStatsScreen>
             padding: const EdgeInsets.all(15.0),
             child: Column(
               children: [
-                FutureBuilder(
-                  future: value.fetchWorldStats(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Padding(
+                
+                    if (value.isLoading)... {
+                       Padding(
         
                         padding: EdgeInsets.symmetric(vertical: MediaQuery.of(context).size.height * 0.4),
                         child: Center(
@@ -49,18 +57,18 @@ class _WorldStatsScreenState extends State<WorldStatsScreen>
                             controller: _controller,
                           ),
                         ),
-                      );
-                    }else if (snapshot.hasError) {
-                      return Center(
+                      ),
+                    }else if (value.worldStats == null)... {
+                       Center(
                         child: Text(
-                          "Error: ${snapshot.error}",
+                          "Error",
                           style: TextStyle(color: Colors.red, fontSize: 16),
                         ),
-                      );
+                      ),
                     }
         
-                   else if (snapshot.hasData) {
-                      return Column(
+                   else if (value.worldStats != null)... {
+                       Column(
                         children: [
                           
                            SizedBox(
@@ -69,13 +77,13 @@ class _WorldStatsScreenState extends State<WorldStatsScreen>
                           PieChart(
                             dataMap: {
                               "Total": double.parse(
-                                snapshot.data!.cases.toString(),
+                                value.worldStats!.cases.toString(),
                               ),
                               "Recovered": double.parse(
-                                snapshot.data!.recovered.toString(),
+                                value.worldStats!.recovered.toString(),
                               ),
                               "Deaths": double.parse(
-                                snapshot.data!.deaths.toString(),
+                                value.worldStats!.deaths.toString(),
                               ),
                             },
         
@@ -103,30 +111,30 @@ class _WorldStatsScreenState extends State<WorldStatsScreen>
                           ),
                           ReusableRow(
                             title: "Total",
-                            value: snapshot.data!.cases.toString(),
+                            value: value.worldStats!.cases.toString(),
                           ),
                             ReusableRow(
                             title: "Deaths",
-                            value: snapshot.data!.deaths.toString(),
+                            value: value.worldStats!.deaths.toString(),
                           ),
                           ReusableRow(
                             title: "Recovered",
-                            value: snapshot.data!.recovered.toString(),
+                            value: value.worldStats!.recovered.toString(),
                           ),
                             ReusableRow(
                             title: "Active",
-                            value: snapshot.data!.active.toString(),
+                            value: value.worldStats!.active.toString(),
                           ),
                             ReusableRow(
                             title: "Critical",
-                            value: snapshot.data!.critical.toString(),
+                            value: value.worldStats!.critical.toString(),
                           ),
                             ReusableRow(
                             title: "Today Deaths",
-                            value: snapshot.data!.todayDeaths.toString(),
+                            value: value.worldStats!.todayDeaths.toString(),
                           ),  ReusableRow(
                             title: "Today Recovered",
-                            value: snapshot.data!.todayRecovered.toString(),
+                            value: value.worldStats!.todayRecovered.toString(),
                             
                           ),
         
@@ -158,15 +166,14 @@ class _WorldStatsScreenState extends State<WorldStatsScreen>
                           ),
                             
                         ],
-                      );
+                      ),
                        
                      
         
-                    } else {
-                        return const Center(child: Text("No data available"));
+                    } else ... {
+                       const Center(child: Text("No data available")),
                     }
-                  },
-                ),
+                 
               ],
             ),
           ),

@@ -11,6 +11,12 @@ import 'package:http/http.dart' as http;
 
 class StatsProvider extends ChangeNotifier {
   List<dynamic> countrylist = [];
+  List< CountriesListModel> _countriesList = [];
+ WorldStatsModel? _worldStats;
+  WorldStatsModel? get worldStats => _worldStats;
+  List<CountriesListModel> get countriesList => _countriesList;
+  bool isLoading = true;
+
 
   void updateCountryList({
     required int totalCases,
@@ -30,6 +36,7 @@ class StatsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+
   Future<WorldStatsModel> fetchWorldStats() async {
     final response = await http.get(Uri.parse(AppUrl.worldStatsApi));
 
@@ -41,6 +48,15 @@ class StatsProvider extends ChangeNotifier {
       throw Exception('Failed to Load Wolrd Stats');
     }
   }
+  
+  Future<void> fetchWorldStatsList() async{
+    isLoading = true;
+    notifyListeners();
+    _worldStats = await fetchWorldStats();
+    isLoading = false;
+    notifyListeners();
+  }
+
 
   Future<List<CountriesListModel>> countriesListApi() async {
    
@@ -56,4 +72,13 @@ class StatsProvider extends ChangeNotifier {
       throw Exception('Error');
     }
   }
+  Future<void> fetchCountriesList() async {
+    isLoading = true;
+     notifyListeners();
+    _countriesList = await countriesListApi();
+    isLoading = false;
+    notifyListeners();
+  }
+
+
 }

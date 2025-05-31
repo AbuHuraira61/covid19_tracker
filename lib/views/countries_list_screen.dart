@@ -7,12 +7,29 @@ import 'package:shimmer/shimmer.dart';
 class CountriesListScreen extends StatefulWidget {
   const CountriesListScreen({super.key});
 
+  
+
   @override
   State<CountriesListScreen> createState() => _CountriesListScreenState();
+
+  
 }
 
 class _CountriesListScreenState extends State<CountriesListScreen> {
-  TextEditingController searchController = TextEditingController();
+
+    TextEditingController searchController = TextEditingController();
+
+    @override
+  void initState() {
+    super.initState();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<StatsProvider>(context, listen: false);
+      provider.fetchCountriesList();
+    });
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -39,148 +56,131 @@ class _CountriesListScreenState extends State<CountriesListScreen> {
           Expanded(
             child: Consumer<StatsProvider>(
               builder: (BuildContext context, StatsProvider value, Widget? child) {
-                return FutureBuilder(
-                  future: value.countriesListApi(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return ListView.builder(
-                        itemCount: 10,
-                        itemBuilder: (context, index) {
-                          return Shimmer.fromColors(
-                            baseColor: Colors.grey.shade700,
-                            highlightColor: Colors.grey.shade100,
-                            enabled: true,
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  leading: Container(
-                                    height: 50,
-                                    width: 50,
-                                    color: Colors.white,
-                                  ),
-                                  title: Container(
-                                    width: 100,
-                                    height: 8.0,
-                                    color: Colors.white,
-                                  ),
-                                  subtitle: Container(
-                                    width: double.infinity,
-                                    height: 8.0,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
+
+                if (value.isLoading) {
+                  return ListView.builder(
+                  itemCount: 10,
+                  itemBuilder: (context, index) {
+                    return Shimmer.fromColors(
+                    baseColor: Colors.grey.shade700,
+                    highlightColor: Colors.grey.shade100,
+                    enabled: true,
+                    child: Column(
+                      children: [
+                      ListTile(
+                        leading: Container(
+                        height: 50,
+                        width: 50,
+                        color: Colors.white,
+                        ),
+                        title: Container(
+                        width: 100,
+                        height: 8.0,
+                        color: Colors.white,
+                        ),
+                        subtitle: Container(
+                        width: double.infinity,
+                        height: 8.0,
+                        color: Colors.white,
+                        ),
+                      ),
+                      ],
+                    ),
+                    );
+                  },
+                  );
+                } else {
+                  final countries = value.countriesList;
+                  return ListView.builder(
+                  itemCount: countries.length,
+                  itemBuilder: (context, index) {
+                    String name = countries[index].country;
+
+                    if (searchController.text.isEmpty) {
+                    return InkWell(
+                      onTap: () {
+                      value.updateCountryList(
+                        image: countries[index].countryInfo?.flag ?? '',
+                        name: countries[index].country,
+                        totalCases: countries[index].cases,
+                        totalRecovered: countries[index].recovered,
+                        totalDeaths: countries[index].deaths,
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                        builder: (context) => DetailScreen(),
+                        ),
+                      );
+                      },
+                      child: ListTile(
+                      leading: countries[index].countryInfo == null
+                        ? SizedBox()
+                        : countries[index].countryInfo!.flag != null
+                          ? Image(
+                            height: 50,
+                            width: 80,
+                            image: NetworkImage(
+                              countries[index].countryInfo!.flag!,
                             ),
-                          );
-                        },
+                            )
+                          : SizedBox(
+                            height: 50,
+                            width: 80,
+                            child: Placeholder(),
+                            ),
+                      title: Text(countries[index].country),
+                      subtitle: Text(
+                        'Cases: ${countries[index].cases}',
+                      ),
+                      ),
+                    );
+                    } else if (name.toLowerCase().contains(
+                    searchController.text.toLowerCase(),
+                    )) {
+                    return InkWell(
+                      onTap: () {
+                      value.updateCountryList(
+                        image: countries[index].countryInfo?.flag ?? '',
+                        name: countries[index].country,
+                        totalCases: countries[index].cases,
+                        totalRecovered: countries[index].recovered,
+                        totalDeaths: countries[index].deaths,
                       );
-                    } else if (snapshot.hasData) {
-                      return ListView.builder(
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, index) {
-                          String name = snapshot.data![index].country;
-
-                          if (searchController.text.isEmpty) {
-                            return InkWell(
-                              onTap: () {
-                                value.updateCountryList(
-                                  image:
-                                      snapshot.data![index].countryInfo!.flag
-                                          ?? '',
-                                  name: snapshot.data![index].country,
-                                  totalCases: snapshot.data![index].cases,
-                                  totalRecovered:
-                                      snapshot.data![index].recovered,
-                                  totalDeaths: snapshot.data![index].deaths,
-                                );
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => DetailScreen(),
-                                  ),
-                                );
-                              },
-                              child: ListTile(
-                                leading:
-                                    snapshot.data![index].countryInfo == null ? SizedBox() : snapshot.data![index]!.countryInfo!.flag !=
-                                        null
-                                    ? Image(
-                                        height: 50,
-                                        width: 80,
-                                        image: NetworkImage(
-                                          snapshot
-                                              .data![index]
-                                              .countryInfo!
-                                              .flag!,
-                                        ),
-                                      )
-                                    : SizedBox(
-                                        height: 50,
-                                        width: 80,
-                                        child:
-                                            Placeholder(), // or any default widget/image
-                                      ),
-
-                                title: Text(snapshot.data![index].country),
-                                subtitle: Text(
-                                  'Cases: ${snapshot.data![index].cases}',
-                                ),
-                              ),
-                            );
-                          } else if (name.toLowerCase().contains(
-                            searchController.text.toLowerCase(),
-                          )) {
-                            return InkWell(
-                              onTap: () {
-                                value.updateCountryList(
-                                  image: snapshot.data![index].countryInfo!.flag
-                                      .toString(),
-                                  name: snapshot.data![index].country
-                                      .toString(),
-                                  totalCases: snapshot.data![index].cases
-                                      .toInt(),
-                                  totalRecovered: snapshot
-                                      .data![index]
-                                      .recovered
-                                      .toInt(),
-                                  totalDeaths: snapshot.data![index].deaths
-                                      .toInt(),
-                                );
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => DetailScreen(),
-                                  ),
-                                );
-                              },
-                              child: ListTile(
-                                leading: Image(
-                                  height: 50,
-                                  width: 80,
-                                  image: NetworkImage(
-                                    snapshot.data![index].countryInfo!.flag
-                                        as String,
-                                  ),
-                                ),
-
-                                title: Text(snapshot.data![index].country),
-                                subtitle: Text(
-                                  'Cases: ${snapshot.data![index].cases}',
-                                ),
-                              ),
-                            );
-                          } else {
-                            return Container();
-                          }
-                        },
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                        builder: (context) => DetailScreen(),
+                        ),
                       );
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
+                      },
+                      child: ListTile(
+                      leading: countries[index].countryInfo != null &&
+                          countries[index].countryInfo!.flag != null
+                        ? Image(
+                          height: 50,
+                          width: 80,
+                          image: NetworkImage(
+                            countries[index].countryInfo!.flag!,
+                          ),
+                          )
+                        : SizedBox(
+                          height: 50,
+                          width: 80,
+                          child: Placeholder(),
+                          ),
+                      title: Text(countries[index].country),
+                      subtitle: Text(
+                        'Cases: ${countries[index].cases}',
+                      ),
+                      ),
+                    );
                     } else {
-                      return Center(child: Text('No data available'));
+                    return Container();
                     }
                   },
-                );
+                  );
+                }
               },
             ),
           ),
